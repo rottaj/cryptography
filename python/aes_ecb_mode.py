@@ -3,7 +3,8 @@ from Crypto.Cipher import AES
 def aes_in_ecb(c, k):
   cipher = AES.new(k.encode("utf8"), AES.MODE_ECB)
   plainText = cipher.decrypt(c.encode("utf8"))
-  print(plainText)
+  print(str(plainText))
+  print(plainText.decode("latin-1").encode("utf-8"))
 
 
 if __name__ == "__main__":
