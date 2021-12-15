@@ -4,7 +4,6 @@ BLOCK_SIZE = 16
 
 def get_block(n, data): # get current block
   l = data[n:n+BLOCK_SIZE]
-  
   return bytes(l.encode("utf8"))
 
 def pad(blockList): # make sure block_size is currect
@@ -35,13 +34,8 @@ def decrypt_ecb(cipherText, key):
 
 
 
-def implement_ecb():
-  key = b"YELLOW SUBMARINE"
-  data = []
+def implement_ecb(data, key): ## Each block is encrypted w/ same key.
   cipherText = []
-  with open("../datfile/10_special.dat") as f:
-    data = f.readlines()
-    data = ''.join([d[:len(d)-1] for d in data])
   for i in range(0, len(data), BLOCK_SIZE): # step every 16 bytes
     x = get_block(i, data)
     if len(x) != BLOCK_SIZE:
@@ -53,15 +47,35 @@ def implement_ecb():
       c = encrypt_ecb(x, key)
       cipherText.append(c)
       
-  ct = b''.join(cipherText)
-  pt = decrypt_ecb(ct, key)
+  return b''.join(cipherText)
 
-  print("\n\nCipher Text after Encrypted: ", ct, "\n")
-  print("Plain Text after Decrypted: ", pt)
+ 
+
+def implement_cbc(data, key): ## ECB but xored agains previous block
+  print(data)
+  cipherText = []
+  for i in range(0, len(data), BLOCK_SIZE): # step every 16 bytes
+    x = get_block(i, data)
+    test = [bytes(b.encode("utf8")) for b in str(x)]
+    print(test, len(test))
+
+      
+
 
 
 if __name__ == "__main__":
-  implement_ecb()
+  key = b"YELLOW SUBMARINE"
+  data = []
+  with open("../datfile/10_special.dat") as f:
+    data = ''.join([d[:len(d)-1] for d in f.readlines()])
+  ct = implement_ecb(data, key)
+  pt = decrypt_ecb(ct, key)
+  print("\n\nCipher Text after Encrypted: ", ct, "\n")
+  print("Plain Text after Decrypted: ", pt, "\n\n\n")
+
+  implement_cbc(data, key)
+
+
 '''   
 if __name__ == "__main__":
 
