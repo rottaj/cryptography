@@ -30,6 +30,11 @@ def decrypt_ecb(cipherText, key):
   plainText = cipher.decrypt(cipherText)
   return plainText
 
+def decrypt_cbc(cipherText, key, iv):
+  cipher = AES.new(key, AES.MODE_CBC)
+  plainText = cipher.decrypt(cipherText)
+  return plainText
+
 
 
 def implement_ecb(data, key): ## Each block is encrypted w/ same key.
@@ -41,8 +46,10 @@ def implement_ecb(data, key): ## Each block is encrypted w/ same key.
     cipherText.append(c)
   return b''.join(cipherText)
 
-def xor(block, iv):
-  print("TESTING", int(block, 2) ^ int(iv, 2))
+
+def xor_and_return_cipher(pt, ct): # xors --> returns cipherText
+  return ''.join([chr(int(bin(i1), 2) ^ int(bin(i2), 2)) for i1, i2 in zip(pt, ct)])
+
 
 def implement_cbc(data, key, iv): ## ECB but xored agains previous block
   cipherText = []
@@ -50,19 +57,20 @@ def implement_cbc(data, key, iv): ## ECB but xored agains previous block
     if i ==0: # initialize vector
       x = get_block(i, data)
       x = pad([bytes(i.encode("utf8")) for i in x.decode()])
-      print(x)
-      t = [(int(x1, 10) ^ int(x2, 10)) for x1, x2 in zip(x, iv)]
-      print(t)
+      z = xor_and_return_cipher(x, iv)
+      z = pad([bytes(i.encode("utf8")) for i in x.decode()])
+      c = encrypt_ecb(z, key)     
+      cipherText.append(c)
 
     else:
       x = get_block(i, data)
       x = pad([bytes(i.encode("utf8")) for i in x.decode()])
-      print(x)
+      z = xor_and_return_cipher(x, cipherText[-1])
+      z = pad([bytes(i.encode("utf8")) for i in x.decode()])
       c = encrypt_ecb(x, key)
-      print(c)
-
-      
-
+      cipherText.append(c)
+  
+  return b''.join(cipherText)
 
 
 if __name__ == "__main__":
@@ -77,26 +85,7 @@ if __name__ == "__main__":
   
   print("\n\n===========================================================\n\n")
   iv = b'\x00\x00\x00 &c' #initialization vector
-  implement_cbc(data, key, iv)
-
-
-'''   
-if __name__ == "__main__":
-
-
-  key = b"YELLOW SUBMARINE"
-  data = []
-  with open("../datfile/10.dat") as f:
-    data = f.readlines()
-    data = ''.join([d[:len(d)-1] for d in data])
-  # Iterate through blocks
-  #currentKey = ecb(data[0]) #initialization vector
-  for i in range(0, len(data)):
-    x = get_block(i, data)
-    if len(x) != BLOCK_SIZE:
-      x = pad([bytes(b.encode("utf8")) for b in str(x)[2:]])
-      break
-
-    currentKey = ecb(x, key) 
-    print(currentKey)
-'''
+  ctCbc = implement_cbc(data, key, iv)
+  print("CBC CIPHERTEXT: ", ctCbc) 
+  ptCbc = decrypt_cbc(ctCbc, key, iv)
+  print("DECRYPTED: ", ptCbc)
