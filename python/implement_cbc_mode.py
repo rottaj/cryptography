@@ -1,3 +1,4 @@
+from Crypto.Util.Padding import pad
 from Crypto.Cipher import AES
 BLOCK_SIZE = 16
 
@@ -28,29 +29,39 @@ def encrypt_ecb(block, key):
 
 def decrypt_ecb(cipherText, key):
   cipher = AES.new(key, AES.MODE_ECB)
-  plainText = cipher.decrypt(cipherText, AES.block_size)
+  plainText = cipher.decrypt(cipherText)
   return plainText
 
-if __name__ == "__main__":
+
+
+
+def implement_ecb():
   key = b"YELLOW SUBMARINE"
   data = []
   cipherText = []
   with open("../datfile/10_special.dat") as f:
     data = f.readlines()
     data = ''.join([d[:len(d)-1] for d in data])
-  for i in range(0, len(data)):
+  for i in range(0, len(data), BLOCK_SIZE): # step every 16 bytes
     x = get_block(i, data)
     if len(x) != BLOCK_SIZE:
-      x = pad([bytes(b.encode("utf8")) for b in str(x)[2:]])
+      x = pad([bytes(b.encode("utf8")) for b in str(x)])
+      c = encrypt_ecb(x, key)
+      cipherText.append(c)
       break
-    c = encrypt_ecb(x, key)
-    cipherText.append(c) 
-    #print(b''.join(cipherText))
-  # Iterate through blocks 
-  pt = decrypt_ecb(b''.join(cipherText), key)
-  print(pt)
+    else:
+      c = encrypt_ecb(x, key)
+      cipherText.append(c)
+      
+  ct = b''.join(cipherText)
+  pt = decrypt_ecb(ct, key)
+
+  print("\n\nCipher Text after Encrypted: ", ct, "\n")
+  print("Plain Text after Decrypted: ", pt)
 
 
+if __name__ == "__main__":
+  implement_ecb()
 '''   
 if __name__ == "__main__":
 
